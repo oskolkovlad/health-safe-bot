@@ -1,25 +1,25 @@
 # config.py
 import os
 from dotenv import load_dotenv
+from cryptography.fernet import Fernet
 
-load_dotenv()  # подхватит .env, если файл существует
+load_dotenv()
 
-# Основные значения из переменных окружения
 TOKEN = os.getenv("TOKEN")
 ENCRYPTION_KEY_STR = os.getenv("ENCRYPTION_KEY")
+PA_USERNAME = os.getenv("PA_USERNAME")          # ← новый параметр
 
-# Проверки
 if not TOKEN:
-    raise ValueError("TOKEN не задан в переменных окружения или .env")
+    raise ValueError("TOKEN не задан")
 if not ENCRYPTION_KEY_STR:
-    raise ValueError("ENCRYPTION_KEY не задан в переменных окружения или .env")
+    raise ValueError("ENCRYPTION_KEY не задан")
+if not PA_USERNAME:
+    raise ValueError("PA_USERNAME не задан (твой логин на PythonAnywhere)")
 
-# Преобразование строки в bytes (то, что ожидает Fernet)
 ENCRYPTION_KEY = ENCRYPTION_KEY_STR.encode('utf-8')
 
-# Дополнительная проверка длины (защита от ошибок)
-if len(ENCRYPTION_KEY) != 44 or not ENCRYPTION_KEY.endswith(b'='):
-    raise ValueError(
-        f"Неверный ENCRYPTION_KEY: длина должна быть 44 символа и заканчиваться '='\n"
-        f"Текущая длина: {len(ENCRYPTION_KEY_STR)}"
-    )
+# Проверка ключа Fernet
+try:
+    _ = Fernet(ENCRYPTION_KEY)
+except Exception as e:
+    raise ValueError(f"Неверный ENCRYPTION_KEY: {e}")
