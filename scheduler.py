@@ -4,6 +4,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from aiogram import Bot
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from datetime import datetime, timedelta
+from db import cipher
 
 scheduler = AsyncIOScheduler()
 
@@ -88,16 +89,19 @@ def add_med_job(bot: Bot, user_id: int, med_id: int, med_name: str, s_type: str,
                           args=[bot, user_id, med_id, med_name, interval], id=job_id)
 
 async def restore_all_jobs(bot: Bot):
-    import db
+    print("🚀 Начинаем восстанавливать основные задачи...")
+
     # 1. Восстанавливаем основные задачи
     all_meds = db.get_all_medicines_raw()
     for m in all_meds:
         try:
-            from db import cipher
             name = cipher.decrypt(m[2].encode()).decode()
             add_med_job(bot, m[1], m[0], name, m[4], m[5], m[6])
         except Exception as e:
             print(f"Ошибка восстановления основной задачи {m[0]}: {e}")
+
+    print("🚀 Закончили восстанавливать основные задачи!")
+    print("🚀 Начали восстанавливать активные повторы...")
 
     # 2. Восстанавливаем активные повторы
     all_retries = db.get_all_retries()
@@ -109,7 +113,6 @@ async def restore_all_jobs(bot: Bot):
         # APScheduler может выполнить его сразу (если не прошло слишком много времени)
         if run_at > datetime.now():
             m = db.get_medicine_by_id(mid) # Получаем инфо о лекарстве
-            from db import cipher
             name = cipher.decrypt(m[1].encode()).decode()
             
             scheduler.add_job(
@@ -119,6 +122,8 @@ async def restore_all_jobs(bot: Bot):
                 args=[bot, uid, mid, name, m[6]], # m[6] это interval_minutes
                 id=f"retry_{uid}_{mid}"
             )
+    
+    print("🚀 Закончили восстанавливать активные повторы!")
 
 def update_med_job(bot: Bot, user_id: int, med_id: int, med_name: str, s_type: str, s_data: str, interval: int):
     job_id = f"main_{user_id}_{med_id}"
