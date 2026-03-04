@@ -1,29 +1,42 @@
-# main.py
-import os
-from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters
-from telegram import Update
-from handlers import start, callback_handler, message_handler
-from config import TOKEN
+import asyncio
+import logging
 
-# Создаём приложение (без запуска polling/webhook)
-application = Application.builder().token(TOKEN).build()
+from aiogram import Bot, Dispatcher
+from config import BOT_TOKEN
+from handlers import common, med_management, edit_med, reports
+from db import init_db
+from scheduler import scheduler, restore_all_jobs
 
-# Все твои хэндлеры
-application.add_handler(CommandHandler("start", start))
-application.add_handler(CallbackQueryHandler(callback_handler))
-application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, message_handler))
+# Настройка логирования
+logging.basicConfig(level=logging.INFO)
 
-# Для удобства — функция установки webhook (выполни один раз)
-async def set_webhook():
-    webhook_url = f"https://{os.getenv('PA_USERNAME')}.pythonanywhere.com/{TOKEN.split(':')[0]}"  # секретный путь
-    await application.bot.set_webhook(
-        url=webhook_url,
-        allowed_updates=["message", "callback_query"]
-    )
-    print(f"Webhook установлен на: {webhook_url}")
+async def main():
+    # Инициализируем БД (создание таблиц)
+    init_db()
+    
+    # Инициализация бота и диспетчера
+    bot = Bot(token=BOT_TOKEN)
+    dp = Dispatcher()
+    
+    # Подключаем обработчики
+    dp.include_router(common.router)
+    dp.include_router(med_management.router)
+    dp.include_router(edit_med.router)
+    dp.include_router(reports.router)
+    
+    # Запускаем планировщик
+    scheduler.start()
+    await restore_all_jobs(bot)
+    
+    print("🚀 Бот HealthSafe запущен и готов к работе!")
+    
+    try:
+        await dp.start_polling(bot)
+    finally:
+        await bot.session.close()
 
-# Если запускаешь локально — polling (для теста)
 if __name__ == "__main__":
-    import asyncio
-    print("Запуск в режиме polling (локально)")
-    application.run_polling()
+    try:
+        asyncio.run(main())
+    except (KeyboardInterrupt, SystemExit):
+        print("Бот остановлен...")
