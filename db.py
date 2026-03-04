@@ -44,9 +44,10 @@ def add_medicine(user_id, name, desc, s_type, s_data, interval):
     cursor = conn.cursor()
     # Шифруем имя (на входе строка -> кодируем в байты -> шифруем -> в текст для БД)
     enc_name = cipher.encrypt(name.encode()).decode()
+    enc_desc = cipher.encrypt(desc.encode()).decode()
     cursor.execute(
         "INSERT INTO medicines (user_id, name, description, schedule_type, schedule_data, interval_minutes) VALUES (?, ?, ?, ?, ?, ?)",
-        (user_id, enc_name, desc, s_type, s_data, interval)
+        (user_id, enc_name, enc_desc, s_type, s_data, interval)
     )
     conn.commit()
     conn.close()
@@ -63,9 +64,10 @@ def get_user_medicines(user_id):
         try:
             # Расшифровываем: текст из БД -> в байты -> дешифруем -> в строку
             dec_name = cipher.decrypt(row[1].encode()).decode()
-            result.append((row[0], dec_name, row[2]))
+            dec_desc = cipher.decrypt(row[2].encode()).decode()
+            result.append((row[0], dec_name, dec_desc))
         except Exception:
-            result.append((row[0], "[Ошибка расшифровки]", row[2]))
+            result.append((row[0], "[Ошибка расшифровки]", "[Ошибка расшифровки]"))
     return result
 
 def get_medicine_by_id(med_id):
@@ -76,7 +78,8 @@ def get_medicine_by_id(med_id):
     conn.close()
     if row:
         dec_name = cipher.decrypt(row[1].encode()).decode()
-        return (row[0], dec_name, row[2])
+        dec_desc = cipher.decrypt(row[2].encode()).decode()
+        return (row[0], dec_name, dec_desc)
     return None
 
 def delete_medicine(med_id):
@@ -114,7 +117,11 @@ def get_all_medicines_raw():
 def update_medicine(med_id, field, new_value):
     conn = get_connection()
     cursor = conn.cursor()
+    
     if field == "name":
+        new_value = cipher.encrypt(new_value.encode()).decode()
+    
+    if field == "description":
         new_value = cipher.encrypt(new_value.encode()).decode()
     
     # field должен быть "interval_minutes", если мы меняем интервал
@@ -133,7 +140,7 @@ def get_full_medicine_by_id(med_id):
     if row:
         return {
             "name": cipher.decrypt(row[0].encode()).decode(),
-            "description": row[1],
+            "description": cipher.decrypt(row[1].encode()).decode(),
             "schedule_type": row[2],
             "schedule_data": row[3],
             "interval_minutes": row[4]
