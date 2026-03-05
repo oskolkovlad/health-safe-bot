@@ -112,14 +112,13 @@ async def restore_all_jobs(bot: Bot):
         # Если время повтора уже прошло, пока бот был выключен,
         # APScheduler может выполнить его сразу (если не прошло слишком много времени)
         if run_at > datetime.now():
-            m = db.get_medicine_by_id(mid) # Получаем инфо о лекарстве
-            name = cipher.decrypt(m[1].encode()).decode()
+            m = db.get_full_medicine_by_id(mid) # Получаем инфо о лекарстве
             
             scheduler.add_job(
                 send_reminder,
                 "date",
                 run_date=run_at,
-                args=[bot, uid, mid, name, m[6]], # m[6] это interval_minutes
+                args=[bot, uid, mid, m['name'], m['interval_minutes']],
                 id=f"retry_{uid}_{mid}"
             )
     
