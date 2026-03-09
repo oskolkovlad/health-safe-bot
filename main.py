@@ -8,7 +8,11 @@ from db import init_db
 from scheduler import scheduler, restore_all_jobs
 
 # Настройка логирования
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(name)s: %(message)s',
+    datefmt='%d.%m.%Y %H:%M:%S'
+)
 
 async def main():
     # Инициализируем БД (создание таблиц)
