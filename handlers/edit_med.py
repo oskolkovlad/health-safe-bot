@@ -1,5 +1,6 @@
 import db
 import scheduler as sc
+import handlers.message_texts as texts
 
 from aiogram import Router, F, Bot
 from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton

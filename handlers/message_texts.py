@@ -1,3 +1,8 @@
+# ОБЩЕЕ
+
+MENU_BUTTON_TEXT = "🔙 Меню"
+BACK_BUTTON_TEXT = "🔙 Назад"
+
 # common.py
 
 START_TEXT = (
@@ -20,18 +25,28 @@ ADD_MED_BUTTON_TEXT = "➕ Добавить лекарство"
 MY_MEDS_BUTTON_TEXT = "📋 Мои лекарства"
 LOG_STATS_BUTTON_TEXT = "📊 Журнал приема"
 
-MENU_BUTTON_TEXT = "🔙 Меню"
-
 # med_management.py
 
 # edit_med.py
 
 # reports.py
 
+SELECT_MED_LOGS_TEXT = "Выбери лекарство для просмотра журнала приема:"
+
+NO_MEDS_TEXT = "У тебя пока нет добавленных лекарств 😔"
+
+MED_LOGS_TEXT = "📊 Журнал приема: <b>«{med_name}»</b>\n\n"
+
+NO_LOG_RECORDS_TEXT= "Записей пока нет."
+
+DATA_REFRESHED_TEXT = "Данные обновлены!"
+
+REFRESH_BUTTON_TEXT = "🔄 Обновить"
+
 # scheduler.py
 
 REMINDER_BASE_TEXT = "🔔 Пора принять лекарство: "
-REMINDER_TEXT = REMINDER_BASE_TEXT + "<b>{med_name}</b>!"
+REMINDER_TEXT = REMINDER_BASE_TEXT + "<b>«{med_name}»</b>!"
 REMINDER_BUTTON_TEXT = "✅ Принято"
 
 # TODO: вынести сюда текст
