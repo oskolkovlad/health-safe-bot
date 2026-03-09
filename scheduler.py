@@ -119,13 +119,14 @@ async def restore_all_jobs(bot: Bot):
     # 2. Восстанавливаем активные повторы
     all_retries = db.get_all_retries()
     for r in all_retries:
-        uid, mid, run_at_str = r
+        uid, mid, run_at_str, last_msg_id = r
         run_at = datetime.fromisoformat(run_at_str)
         
         # Если время повтора уже прошло, пока бот был выключен,
         # APScheduler может выполнить его сразу (если не прошло слишком много времени)
         if run_at > datetime.now():
             m = db.get_full_medicine_by_id(mid) # Получаем инфо о лекарстве
+            if not m: continue
             
             scheduler.add_job(
                 send_reminder,

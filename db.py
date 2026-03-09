@@ -181,7 +181,7 @@ def remove_active_retry(user_id, med_id):
 def get_all_retries():
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT user_id, med_id, run_at FROM active_retries")
+    cursor.execute("SELECT user_id, med_id, run_at, last_msg_id FROM active_retries")
     rows = cursor.fetchall()
     conn.close()
     return rows

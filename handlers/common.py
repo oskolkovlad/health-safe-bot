@@ -45,18 +45,31 @@ async def to_main_answer(message: Message, state: FSMContext):
 async def take_handler(cb: CallbackQuery, state: FSMContext):
     mid = int(cb.data.split("_")[1])
     uid = cb.from_user.id
+
+    # Сначала проверяем, есть ли активный повтор в базе
+    active_retry = db.get_active_retry(uid, mid)
     
-    # 1. Сразу фиксируем прием в логах
+    if not active_retry:
+        # Если записи нет, значит либо уже нажали, либо это старое уведомление
+        await cb.answer("Этот прием уже зафиксирован или не актуален.", show_alert=True)
+        try:
+            await cb.message.edit_reply_markup(reply_markup=None) # Убираем кнопку от греха подальше
+        except:
+            pass
+        return
+    
+    # Если мы здесь — значит нажатие легитимное
+    # 1. СРАЗУ удаляем из базы, чтобы другие нажатия не прошли
+    db.remove_active_retry(uid, mid) # Удаляем из БД, чтобы не восстановилось
+    
+    # 2. Логируем прием
     db.log_intake(mid, uid)
 
-    # 2. Убираем кнопку у текущего сообщения (превращаем в текст "Принято")
+    # 3. Убираем кнопку у текущего сообщения (превращаем в текст "Принято")
     try:
         await cb.message.edit_text(f"✅ Принято: {cb.message.text.replace('🔔 Пора принять лекарство: ', '')}", reply_markup=None)
     except Exception:
         pass
-
-    # 3. Чистим данные о повторах
-    db.remove_active_retry(uid, mid) # Удаляем из БД, чтобы не восстановилось
     
     # Удаляем задачу повторного напоминания, если она есть
     retry_id = f"retry_{uid}_{mid}"
