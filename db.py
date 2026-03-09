@@ -2,6 +2,7 @@ import sqlite3
 
 from cryptography.fernet import Fernet
 from config import ENCRYPTION_KEY
+from datetime import datetime, timedelta, timezone
 
 # Инициализируем объект для шифрования один раз
 cipher = Fernet(ENCRYPTION_KEY.encode() if isinstance(ENCRYPTION_KEY, str) else ENCRYPTION_KEY)
@@ -93,7 +94,11 @@ def delete_medicine(med_id):
 def log_intake(med_id, user_id):
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO logs (med_id, user_id) VALUES (?, ?)", (med_id, user_id))
+
+    # Вычисляем московское время (UTC+3)
+    moscow_time = datetime.now(timezone(timedelta(hours=3))).strftime("%Y-%m-%d %H:%M:%S")
+
+    cursor.execute("INSERT INTO logs (med_id, user_id, taken_at) VALUES (?, ?, ?)", (med_id, user_id, moscow_time))
     conn.commit()
     conn.close()
 
