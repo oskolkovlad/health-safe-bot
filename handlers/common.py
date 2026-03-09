@@ -8,6 +8,11 @@ from aiogram.fsm.context import FSMContext
 
 router = Router()
 
+main_text = (
+    "Добавляй лекарства, редактируй расписание и следи за приёмом — всё просто и удобно!\n\n"
+    "<i>Что сделаем сейчас?</i>"
+)
+
 def main_menu_kb():
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="➕ Добавить лекарство", callback_data="add_med")],
@@ -28,13 +33,13 @@ async def cmd_start(message: Message, state: FSMContext):
 
 @router.callback_query(F.data == "main_menu")
 @router.callback_query(F.data == "cancel")
-async def to_main(cb: CallbackQuery, state: FSMContext):
+async def to_main_edit(cb: CallbackQuery, state: FSMContext):
     await state.clear()
-    text = (
-        "Добавляй лекарства, редактируй расписание и следи за приёмом — всё просто и удобно!\n\n"
-        "<i>Что сделаем сейчас?</i>"
-    )
-    await cb.message.edit_text(text, reply_markup=main_menu_kb(), parse_mode="HTML")
+    await cb.message.edit_text(main_text, reply_markup=main_menu_kb(), parse_mode="HTML")
+
+async def to_main_answer(message: Message, state: FSMContext):
+    await state.clear()
+    await message.answer(main_text, reply_markup=main_menu_kb(), parse_mode="HTML")
 
 @router.callback_query(F.data.startswith("take_"))
 async def take_handler(cb: CallbackQuery):
