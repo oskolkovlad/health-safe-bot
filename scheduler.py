@@ -1,4 +1,5 @@
 import db
+import handlers.message_texts as texts
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from aiogram import Bot
@@ -22,13 +23,13 @@ async def send_reminder(bot: Bot, user_id: int, med_id: int, med_name: str, inte
     
     # 2. Отправляем новое уведомление
     kb = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="✅ Принято", callback_data=f"take_{med_id}")]
+        [InlineKeyboardButton(text=texts.REMINDER_BUTTON_TEXT, callback_data=f"take_{med_id}")]
     ])
     
     try:
         msg = await bot.send_message(
             user_id, 
-            f"🔔 Пора принять лекарство: <b>{med_name}</b>!",
+            texts.REMINDER_TEXT.format(med_name=med_name),
             reply_markup=kb,
             parse_mode="HTML"
         )
