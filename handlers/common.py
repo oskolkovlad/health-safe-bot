@@ -19,7 +19,7 @@ def main_menu_kb():
 @router.message(Command("start"))
 async def cmd_start(message: Message, state: FSMContext):
     await state.clear()
-    await message.answer(texts.START_MESSAGE_TEXT, reply_markup=main_menu_kb(), parse_mode="HTML")
+    await message.answer(texts.START_TEXT, reply_markup=main_menu_kb(), parse_mode="HTML")
 
 @router.callback_query(F.data == "main_menu")
 @router.callback_query(F.data == "cancel")
@@ -61,7 +61,10 @@ async def take_handler(cb: CallbackQuery, state: FSMContext):
         sc.scheduler.remove_job(retry_id)
     
     try:
-        await cb.message.edit_text(texts.TAKE_MESSAGE_TEXT.format(med_name = cb.message.text.replace(texts.REMINDER_BASE_TEXT, '')), reply_markup=None)
+        await cb.message.edit_text(
+            texts.TAKE_TEXT.format(med_name = cb.message.text.replace(texts.REMINDER_BASE_TEXT, '').replace('!', '')),
+            reply_markup=None,
+            parse_mode="HTML")
     except Exception:
         pass
 

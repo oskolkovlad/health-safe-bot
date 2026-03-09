@@ -101,5 +101,5 @@ async def finish_upd(msg: Message, state: FSMContext, bot: Bot):
     sc.update_med_job(bot, msg.from_user.id, mid, m['name'], m['schedule_type'], m['schedule_data'], m['interval_minutes'])
     
     await state.clear()
-    await msg.answer(f"✅ Данные лекарства «{m['name']}» успешно обновлены!")
+    await msg.answer(f"✅ Данные лекарства <b>«{m['name']}»</b> успешно обновлены!", parse_mode="HTML")
     await show_medicine_card(msg, mid)

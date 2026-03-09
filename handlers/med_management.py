@@ -177,7 +177,7 @@ async def add_med_finish(message: Message, state: FSMContext, bot: Bot):
     sc.add_med_job(bot, message.from_user.id, new_med[0], new_med[1],  data['schedule_type'], data['schedule_data'], interval)
     
     await state.clear()
-    await message.answer(f"Лекарство «{data['name']}» добавлено! 🎉")
+    await message.answer(f"Лекарство <b>«{data['name']}»</b> добавлено! 🎉", parse_mode="HTML")
     await to_main_answer(message, state)
 
 # --- Обработчики кнопок "Назад" ---
