@@ -48,7 +48,7 @@ ADD_MED_BUTTON_TEXT = "➕ Добавить лекарство"
 MY_MEDS_BUTTON_TEXT = "📋 Мои лекарства"
 LOG_STATS_BUTTON_TEXT = "📊 Журнал приема"
 
-# med_management.py
+# add_med.py
 
 ADD_MED_NAME_TEXT = "Окей, давай добавим новое лекарство! 💊\n\nКак называется препарат?"
 ADD_MED_DESC_TEXT =(

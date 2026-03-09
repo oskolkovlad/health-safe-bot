@@ -3,7 +3,7 @@ import logging
 
 from aiogram import Bot, Dispatcher
 from config import BOT_TOKEN
-from handlers import common, med_management, edit_med, reports
+from handlers import add_med, common, edit_med, reports
 from db import init_db
 from scheduler import scheduler, restore_all_jobs
 
@@ -24,7 +24,7 @@ async def main():
     
     # Подключаем обработчики
     dp.include_router(common.router)
-    dp.include_router(med_management.router)
+    dp.include_router(add_med.router)
     dp.include_router(edit_med.router)
     dp.include_router(reports.router)
     
