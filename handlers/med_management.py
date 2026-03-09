@@ -101,10 +101,29 @@ async def add_med_start(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_text("Окей, давай добавим новое лекарство! 💊\n\nКак называется препарат?", reply_markup=cancel_kb())
 
 @router.message(AddMed.name)
-async def add_med_name(message: Message, state: FSMContext):
-    await state.update_data(name=message.text)
+async def add_med_name(msg: Message, state: FSMContext):
+    # Убираем лишние пробелы по краям
+    med_name = msg.text.strip()
+    
+    # ПРОВЕРКА ДЛИНЫ
+    if len(med_name) < 2:
+        return await msg.answer("Слишком короткое название. Напиши хотя бы 2 символа.")
+    
+    if len(med_name) > 40:
+        return await msg.answer(
+            f"Ого, какое длинное название! 😅\n\n"
+            f"В нем {len(med_name)} символов, а лимит — 40.\n"
+            f"Попробуй сократить, например: '{med_name[:30]}...'"
+        )
+
+    await state.update_data(name=med_name)
     await state.set_state(AddMed.description)
-    await message.answer("Укажи описание или напиши '-', если не нужно:", reply_markup=nav_kb("back_to_name_input"))
+    await msg.answer(
+        f"Отлично!\n\n"
+        "Теперь добавь описание (например, 'после еды') или напиши '-', если описание не нужно:",
+        reply_markup=nav_kb("back_to_name_input"),
+        parse_mode="HTML"
+    )
 
 @router.message(AddMed.description)
 async def add_med_desc(message: Message, state: FSMContext):

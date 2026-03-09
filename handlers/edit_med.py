@@ -64,10 +64,22 @@ async def upd_sch_type(cb: CallbackQuery, state: FSMContext):
 async def finish_upd(msg: Message, state: FSMContext, bot: Bot):
     data = await state.get_data()
     mid, field = int(data['edit_med_id']), data['edit_field']
+
+    back_kb = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="❌ Отмена", callback_data=f"edit_{mid}")]])
+
+    if field == "name":
+        if len(msg.text) < 2:
+            return await msg.answer("Слишком короткое название. Напиши хотя бы 2 символа.", reply_markup=back_kb)
+    
+        if len(msg.text) > 40:
+            return await msg.answer(
+                f"Ого, какое длинное название! 😅\n\n"
+                f"В нем {len(msg.text)} символов, а лимит — 40.\n"
+                f"Попробуй сократить, например: '{msg.text[:30]}...'",
+                reply_markup=back_kb
+            )
     
     if field == "interval_minutes":
-        back_kb = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="❌ Отмена", callback_data=f"edit_{mid}")]])
-
         if not msg.text.isdigit():
             return await msg.answer("Пожалуйста, введи число (минуты):", reply_markup=back_kb)
         
