@@ -42,11 +42,20 @@ async def to_main_answer(message: Message, state: FSMContext):
     await message.answer(main_text, reply_markup=main_menu_kb(), parse_mode="HTML")
 
 @router.callback_query(F.data.startswith("take_"))
-async def take_handler(cb: CallbackQuery):
+async def take_handler(cb: CallbackQuery, state: FSMContext):
     mid = int(cb.data.split("_")[1])
     uid = cb.from_user.id
     
+    # 1. Сразу фиксируем прием в логах
     db.log_intake(mid, uid)
+
+    # 2. Убираем кнопку у текущего сообщения (превращаем в текст "Принято")
+    try:
+        await cb.message.edit_text(f"✅ Принято: {cb.message.text.replace('🔔 Пора принять лекарство: ', '')}", reply_markup=None)
+    except Exception:
+        pass
+
+    # 3. Чистим данные о повторах
     db.remove_active_retry(uid, mid) # Удаляем из БД, чтобы не восстановилось
     
     # Удаляем задачу повторного напоминания, если она есть
@@ -54,7 +63,11 @@ async def take_handler(cb: CallbackQuery):
     if sc.scheduler.get_job(retry_id):
         sc.scheduler.remove_job(retry_id)
         
-    await cb.message.edit_text("✅ Принято! Будь здоров(а)!", reply_markup=back_to_main_kb())
+    await cb.message.edit_text("✅ Кайф, лекарство принято! Будь здоров(а)! 💪", reply_markup=back_to_main_kb())
+    
+    # 5. Отправляем основное меню через твой метод
+    await to_main_answer(cb.message, state)
+    await cb.answer()
 
 def back_to_main_kb():
     return InlineKeyboardMarkup(inline_keyboard=[

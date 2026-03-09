@@ -10,25 +10,38 @@ scheduler = AsyncIOScheduler()
 
 # Функция, которая непосредственно отправляет уведомление
 async def send_reminder(bot: Bot, user_id: int, med_id: int, med_name: str, interval: int):
+    # 1. Проверяем, есть ли старое уведомление, которое не было нажато
+    old_retry = db.get_active_retry(user_id, med_id)
+    if old_retry:
+        old_msg_id = old_retry[0]
+        try:
+            # Убираем кнопку у старого сообщения (оставляем только текст)
+            await bot.edit_message_reply_markup(chat_id=user_id, message_id=old_msg_id, reply_markup=None)
+        except Exception:
+            pass # Если сообщение удалено пользователем или слишком старое
+    
+    # 2. Отправляем новое уведомление
     kb = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="✅ Принято", callback_data=f"take_{med_id}")]
     ])
     
     try:
-        await bot.send_message(
+        msg = await bot.send_message(
             user_id, 
             f"🔔 Пора принять лекарство: <b>{med_name}</b>!",
             reply_markup=kb,
             parse_mode="HTML"
         )
         
+        # 3. Планируем следующий повтор и сохраняем новый msg_id
+
         # Вычисляем время повтора
         run_date = datetime.now() + timedelta(minutes=interval)
         retry_id = f"retry_{user_id}_{med_id}"
         
         # Сохраняем информацию о повторе в БД
-        db.add_active_retry(user_id, med_id, run_date)
-        
+        db.add_active_retry(user_id, med_id, run_date, msg.message_id)
+
         # Планируем задачу
         scheduler.add_job(
             send_reminder,

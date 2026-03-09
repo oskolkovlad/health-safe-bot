@@ -35,6 +35,7 @@ def init_db():
         user_id INTEGER,
         med_id INTEGER,
         run_at TIMESTAMP,
+        last_msg_id INTEGER,
         PRIMARY KEY (user_id, med_id)
     )''')
     conn.commit()
@@ -152,13 +153,23 @@ def get_full_medicine_by_id(med_id):
         }
     return None
 
-def add_active_retry(user_id, med_id, run_at):
+def add_active_retry(user_id, med_id, run_at, msg_id):
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("INSERT OR REPLACE INTO active_retries (user_id, med_id, run_at) VALUES (?, ?, ?)",
-                   (user_id, med_id, run_at.isoformat()))
+    cursor.execute(
+        "INSERT OR REPLACE INTO active_retries (user_id, med_id, run_at, last_msg_id) VALUES (?, ?, ?, ?)",
+        (user_id, med_id, run_at.isoformat(), msg_id)
+    )
     conn.commit()
     conn.close()
+
+def get_active_retry(user_id, med_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT last_msg_id, run_at FROM active_retries WHERE user_id = ? AND med_id = ?", (user_id, med_id))
+    row = cursor.fetchone()
+    conn.close()
+    return row # Вернет (msg_id, run_at) или None
 
 def remove_active_retry(user_id, med_id):
     conn = get_connection()
