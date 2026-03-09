@@ -9,6 +9,18 @@ from handlers.common import main_menu_kb
 
 router = Router()
 
+schedule_type_prompts = {
+    "once": "Укажи дату и время единоразового приёма\n\nФормат: <b><code>05.03.2026 8:00</code></b>",
+    "daily": "Укажи время ежедневного приёма\n\nФормат: <b><code>8:00</code></b>",
+    "wdays": (
+        "Укажи дни недели и время\n"
+        "Дни: 1=пн, 2=вт, 3=ср, 4=чт, 5=пт, 6=сб, 7=вс\n\n"
+        "Пример (пн, ср, пт в 9 утра):\n"
+        "<code>1 3 5 9:00</code>"
+    ),
+    "month": "Укажи число месяца и время\n\nПример (15-го числа в 21:30):\n<code>15 21:30</code>"
+}
+
 # Состояния для добавления нового лекарства
 class AddMed(StatesGroup):
     name = State()
@@ -116,19 +128,7 @@ async def add_med_sch_choice(callback: CallbackQuery, state: FSMContext):
     sch_type = callback.data.split("_")[1]
     await state.update_data(schedule_type=sch_type)
     await state.set_state(AddMed.schedule_data)
-    
-    prompts = {
-        "once": "Укажи дату и время единоразового приёма\nФормат: <b>05.03.2026 8:00</b>",
-        "daily": "Укажи время ежедневного приёма\nФормат: <b>8:00</b>",
-        "wdays": (
-            "Укажи дни недели и время\n"
-            "Дни: 1=пн, 2=вт, 3=ср, 4=чт, 5=пт, 6=сб, 7=вс\n\n"
-            "Пример (пн, ср, пт в 9 утра):\n"
-            "<code>1 3 5 9:00</code>"
-        ),
-        "month": "Укажи число месяца и время\nПример (15-го числа в 21:30):\n<code>15 21:30</code>"
-    }
-    await callback.message.edit_text(prompts[sch_type], reply_markup=nav_kb("back_to_sch_type"), parse_mode="HTML")
+    await callback.message.edit_text(schedule_type_prompts[sch_type], reply_markup=nav_kb("back_to_sch_type"), parse_mode="HTML")
 
 @router.message(AddMed.schedule_data)
 async def add_med_sch_data(message: Message, state: FSMContext):
@@ -139,17 +139,23 @@ async def add_med_sch_data(message: Message, state: FSMContext):
 @router.message(AddMed.interval)
 async def add_med_finish(message: Message, state: FSMContext, bot: Bot):
     if not message.text.isdigit():
-        return await message.answer("Введи только число.", reply_markup=nav_kb("back_to_sch_data"))
+        return await message.answer("Пожалуйста, введи число (минуты):", reply_markup=nav_kb("back_to_sch_data"))
     
+    interval = int(message.text)
+    
+    # Валидация диапазона
+    if interval < 5:
+        return await message.answer("Минимальный интервал — 5 минут.\n\nПопробуй еще раз:", reply_markup=nav_kb("back_to_sch_data"))
+    if interval > 1440:
+        return await message.answer("Максимальный интервал — 1440 минут (24 часа).\n\nПопробуй еще раз:", reply_markup=nav_kb("back_to_sch_data"))
+
     data = await state.get_data()
-    db.add_medicine(message.from_user.id, data['name'], data['description'], 
-                    data['schedule_type'], data['schedule_data'], int(message.text))
+    db.add_medicine(message.from_user.id, data['name'], data['description'], data['schedule_type'], data['schedule_data'], interval)
     
     meds = db.get_user_medicines(message.from_user.id)
     new_med = meds[-1]
     
-    sc.add_med_job(bot, message.from_user.id, new_med[0], new_med[1], 
-                   data['schedule_type'], data['schedule_data'], int(message.text))
+    sc.add_med_job(bot, message.from_user.id, new_med[0], new_med[1],  data['schedule_type'], data['schedule_data'], interval)
     
     await state.clear()
     await message.answer(f"Лекарство «{data['name']}» добавлено! 🎉", reply_markup=main_menu_kb())
@@ -186,16 +192,4 @@ async def back_to_sch_data(cb: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     sch_type = data.get("schedule_type", "daily")
     await state.set_state(AddMed.schedule_data)
-    
-    prompts = {
-        "once": "Укажи дату и время единоразового приёма\nФормат: <b>05.03.2026 8:00</b>",
-        "daily": "Укажи время ежедневного приёма\nФормат: <b>8:00</b>",
-        "wdays": (
-            "Укажи дни недели и время\n"
-            "Дни: 1=пн, 2=вт, 3=ср, 4=чт, 5=пт, 6=сб, 7=вс\n\n"
-            "Пример (пн, ср, пт в 9 утра):\n"
-            "<code>1 3 5 9:00</code>"
-        ),
-        "month": "Укажи число месяца и время\nПример (15-го числа в 21:30):\n<code>15 21:30</code>"
-    }
-    await cb.message.edit_text(prompts[sch_type], reply_markup=nav_kb("back_to_sch_type"), parse_mode="HTML")
+    await cb.message.edit_text(schedule_type_prompts[sch_type], reply_markup=nav_kb("back_to_sch_type"), parse_mode="HTML")

@@ -5,7 +5,7 @@ from aiogram import Router, F, Bot
 from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-from handlers.med_management import show_medicine_card
+from handlers.med_management import show_medicine_card, schedule_type_prompts
 
 router = Router()
 
@@ -55,20 +55,9 @@ async def upd_sch_type(cb: CallbackQuery, state: FSMContext):
     
     await state.update_data(edit_sch_type=sch_type)
     await state.set_state(EditMed.waiting_for_value)
-    
-    prompts = {
-        "once": "Укажи дату и время единоразового приёма\nФормат: <b>05.03.2026 8:00</b>",
-        "daily": "Укажи время ежедневного приёма\nФормат: <b>8:00</b>",
-        "wdays": (
-            "Укажи дни недели и время\n"
-            "Дни: 1=пн, 2=вт, 3=ср, 4=чт, 5=пт, 6=сб, 7=вс\n\n"
-            "Пример (пн, ср, пт в 9 утра):\n"
-            "<code>1 3 5 9:00</code>"
-        ),
-        "month": "Укажи число месяца и время\nПример (15-го числа в 21:30):\n<code>15 21:30</code>"
-    }
+
     back_kb = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="❌ Отмена", callback_data=f"edit_{mid}")]])
-    await cb.message.edit_text(prompts.get(sch_type, "Введи данные:"), reply_markup=back_kb, parse_mode="HTML")
+    await cb.message.edit_text(schedule_type_prompts.get(sch_type, "Введи данные:"), reply_markup=back_kb, parse_mode="HTML")
 
 # 3. Финал: получение текста и сохранение в базу
 @router.message(EditMed.waiting_for_value)
@@ -76,9 +65,20 @@ async def finish_upd(msg: Message, state: FSMContext, bot: Bot):
     data = await state.get_data()
     mid, field = int(data['edit_med_id']), data['edit_field']
     
-    if field == "interval_minutes" and not msg.text.isdigit():
-        return await msg.answer("Нужно число.")
+    if field == "interval_minutes":
+        back_kb = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="❌ Отмена", callback_data=f"edit_{mid}")]])
+
+        if not msg.text.isdigit():
+            return await msg.answer("Пожалуйста, введи число (минуты):", reply_markup=back_kb)
+        
+        interval = int(msg.text)
     
+        # Валидация диапазона
+        if interval < 5:
+            return await msg.answer("Минимальный интервал — 5 минут.\n\nПопробуй еще раз:", reply_markup=back_kb)
+        if interval > 1440:
+            return await msg.answer("Максимальный интервал — 1440 минут (24 часа).\n\nПопробуй еще раз:", reply_markup=back_kb)
+
     if field == "schedule":
         db.update_medicine(mid, "schedule_type", data['edit_sch_type'])
         db.update_medicine(mid, "schedule_data", msg.text)
