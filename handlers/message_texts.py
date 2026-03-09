@@ -1,6 +1,6 @@
 # common.py
 
-START_MESSAGE_TEXT = (
+START_TEXT = (
     "Привет! 👋 Я <b>HealthSafe</b> — твой личный страж здоровья 💊\n\n"
     "Не пропусти ни одной таблетки — я напомню вовремя, даже если ты занят(а) 😌\n\n"
     "Добавляй лекарства, редактируй расписание и следи за приёмом — всё просто и удобно!\n\n"
@@ -12,9 +12,9 @@ MAIN_MENU_TEXT = (
     "<i>Что сделаем сейчас?</i>"
 )
 
-TAKE_MESSAGE_TEXT = "✅ Кайф, лекарство принято! Будь здоров(а)! 💪"
+TAKE_TEXT = "✅ Кайф, лекарство <b>{med_name}</b> принято! Будь здоров(а)! 💪"
 
-TAKE_TEXT = "✅ Принято: {med_name}" ####
+TAKE_NOT_ACTUAL_TEXT = "Этот прием уже зафиксирован или не актуален."
 
 ADD_MED_BUTTON_TEXT = "➕ Добавить лекарство"
 MY_MEDS_BUTTON_TEXT = "📋 Мои лекарства"
@@ -30,7 +30,8 @@ MENU_BUTTON_TEXT = "🔙 Меню"
 
 # scheduler.py
 
-REMINDER_TEXT = "🔔 Пора принять лекарство: <b>{med_name}</b>!"
+REMINDER_BASE_TEXT = "🔔 Пора принять лекарство: "
+REMINDER_TEXT = REMINDER_BASE_TEXT + "<b>{med_name}</b>!"
 REMINDER_BUTTON_TEXT = "✅ Принято"
 
 # TODO: вынести сюда текст

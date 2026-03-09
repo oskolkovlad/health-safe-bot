@@ -41,7 +41,7 @@ async def take_handler(cb: CallbackQuery, state: FSMContext):
     
     if not active_retry:
         # Если записи нет, значит либо уже нажали, либо это старое уведомление
-        await cb.answer("Этот прием уже зафиксирован или не актуален.", show_alert=True)
+        await cb.answer(texts.TAKE_NOT_ACTUAL_TEXT, show_alert=True)
         try:
             await cb.message.edit_reply_markup(reply_markup=None) # Убираем кнопку от греха подальше
         except:
@@ -55,19 +55,16 @@ async def take_handler(cb: CallbackQuery, state: FSMContext):
     # 2. Логируем прием
     db.log_intake(mid, uid)
 
-    # 3. Убираем кнопку у текущего сообщения (превращаем в текст "Принято")
-    try:
-        await cb.message.edit_text(f"✅ Принято: {cb.message.text.replace('🔔 Пора принять лекарство: ', '')}", reply_markup=None)
-    except Exception:
-        pass
-
     # Удаляем задачу повторного напоминания, если она есть
     retry_id = f"retry_{uid}_{mid}"
     if sc.scheduler.get_job(retry_id):
         sc.scheduler.remove_job(retry_id)
-        
-    await cb.message.edit_text(texts.TAKE_MESSAGE_TEXT, reply_markup=back_to_main_kb())
     
+    try:
+        await cb.message.edit_text(texts.TAKE_MESSAGE_TEXT.format(med_name = cb.message.text.replace(texts.REMINDER_BASE_TEXT, '')), reply_markup=None)
+    except Exception:
+        pass
+
     # 5. Отправляем основное меню через твой метод
     await to_main_answer(cb.message, state)
     await cb.answer()
