@@ -52,7 +52,7 @@ async def my_meds(cb: CallbackQuery):
         return await cb.message.edit_text(texts.NO_MEDS_TEXT, reply_markup=InlineKeyboardMarkup(inline_keyboard=btns))
     
     btns = [[InlineKeyboardButton(text=m[1], callback_data=f"edit_{m[0]}")] for m in meds]
-    btns.append([menu_btn])
+    btns.append(menu_btn)
     
     await cb.message.edit_text(texts.EDIT_MEDS_LIST_TEXT, reply_markup=InlineKeyboardMarkup(inline_keyboard=btns), parse_mode="HTML")
 
