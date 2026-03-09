@@ -27,6 +27,7 @@ async def cmd_start(message: Message, state: FSMContext):
     await message.answer(text, reply_markup=main_menu_kb(), parse_mode="HTML")
 
 @router.callback_query(F.data == "main_menu")
+@router.callback_query(F.data == "cancel")
 async def to_main(cb: CallbackQuery, state: FSMContext):
     await state.clear()
     text = (
@@ -34,11 +35,6 @@ async def to_main(cb: CallbackQuery, state: FSMContext):
         "<i>Что сделаем сейчас?</i>"
     )
     await cb.message.edit_text(text, reply_markup=main_menu_kb(), parse_mode="HTML")
-
-@router.callback_query(F.data == "cancel")
-async def cancel_handler(callback: CallbackQuery, state: FSMContext):
-    await state.clear()
-    await callback.message.edit_text("Действие отменено 👌", reply_markup=main_menu_kb())
 
 @router.callback_query(F.data.startswith("take_"))
 async def take_handler(cb: CallbackQuery):
