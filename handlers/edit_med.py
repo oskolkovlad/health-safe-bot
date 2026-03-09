@@ -44,12 +44,15 @@ async def show_medicine_card(message_or_callback, mid: int):
 
 @router.callback_query(F.data == "my_meds")
 async def my_meds(cb: CallbackQuery):
+    menu_btn = [InlineKeyboardButton(text=texts.MENU_BUTTON_TEXT, callback_data="main_menu")]
+
     meds = db.get_user_medicines(cb.from_user.id)
-    if not meds: 
-        return await cb.message.edit_text(texts.EDIT_NO_MEDS_TEXT, reply_markup=main_menu_kb())
+    if not meds:
+        btns = [menu_btn]
+        return await cb.message.edit_text(texts.NO_MEDS_TEXT, reply_markup=InlineKeyboardMarkup(inline_keyboard=btns))
     
     btns = [[InlineKeyboardButton(text=m[1], callback_data=f"edit_{m[0]}")] for m in meds]
-    btns.append([InlineKeyboardButton(text=texts.MENU_BUTTON_TEXT, callback_data="main_menu")])
+    btns.append([menu_btn])
     
     await cb.message.edit_text(texts.EDIT_MEDS_LIST_TEXT, reply_markup=InlineKeyboardMarkup(inline_keyboard=btns), parse_mode="HTML")
 

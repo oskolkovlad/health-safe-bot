@@ -16,6 +16,8 @@ SCHEDULE_TYPE_PROMPTS = {
     "month": "Укажи число месяца и время\n\nПример (15-го числа в 21:30):\n<code>15 21:30</code>"
 }
 
+NO_MEDS_TEXT = "У тебя пока нет добавленных лекарств 😔"
+
 ERR_TOO_SHORT_NAME_TEXT = "Слишком короткое название. Напиши хотя бы 2 символа."
 ERR_TOO_LONG_NAME_TEXT = (
     "Ого, какое длинное название! 😅\n\n"
@@ -89,7 +91,6 @@ MED_CARD_TEXT = text = (
     "<i>Что изменим?</i>"
 )
 
-EDIT_NO_MEDS_TEXT = "У тебя пока нет добавленных лекарств 😔"
 EDIT_MEDS_LIST_TEXT = "📋 <b>Твои лекарства:</b>"
 EDIT_MED_DELETED_TEXT = "Удалено"
 EDIT_MED_DEFAULT_VALUE_TEXT = "Введи значение:"
@@ -105,7 +106,6 @@ EDIT_MED_DELETE_BUTTON_TEXT = "🗑 Удалить"
 # reports.py
 
 SELECT_MED_LOGS_TEXT = "Выбери лекарство для просмотра журнала приема:"
-NO_MEDS_TEXT = "У тебя пока нет добавленных лекарств 😔"
 MED_LOGS_TEXT = "📊 Журнал приема: <b>«{med_name}»</b>\n\n"
 NO_LOG_RECORDS_TEXT= "Записей пока нет."
 DATA_REFRESHED_TEXT = "Данные обновлены!"
