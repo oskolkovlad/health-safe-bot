@@ -151,13 +151,13 @@ async def restore_all_jobs(bot: Bot):
     for r in all_retries:
         uid, mid, run_at_str, last_msg_id = r
         run_at = datetime.fromisoformat(run_at_str)
+
+        m = db.get_full_medicine_by_id(mid) # Получаем инфо о лекарстве
+        if not m: continue
         
         # Если время повтора уже прошло, пока бот был выключен,
         # APScheduler может выполнить его сразу (если не прошло слишком много времени)
-        if run_at > (datetime.now() - timedelta(hours=1)):
-            m = db.get_full_medicine_by_id(mid) # Получаем инфо о лекарстве
-            if not m: continue
-            
+        if run_at > (datetime.now() - timedelta(hours=5)):
             scheduler.add_job(
                 send_reminder,
                 "date",
@@ -166,7 +166,30 @@ async def restore_all_jobs(bot: Bot):
                 id=f"retry_{uid}_{mid}",
                 misfire_grace_time=3600 # Дополнительная страховка для конкретной задачи
             )
-    
+        else:
+            db.remove_active_retry(uid, mid)
+            
+            # Удаляем задачу повторного напоминания, если она есть
+            retry_id = f"retry_{uid}_{mid}"
+            if scheduler.get_job(retry_id):
+                scheduler.remove_job(retry_id)
+
+            # Убираем кнопку у предыдущего сообщения, если оно было
+            try:
+                # Убираем кнопку у старого сообщения (оставляем только текст)
+                await bot.edit_message_reply_markup(chat_id=uid, message_id=last_msg_id, reply_markup=None)
+            except Exception:
+                pass # Если сообщение удалено пользователем или слишком старое
+
+            await bot.send_message(
+                uid, 
+                texts.REMINDER_REMOVED_TEXT.format(med_name=m['name'], run_at=run_at_str),
+                reply_markup=None,
+                parse_mode="HTML"
+            )
+
+            print(f"☠️ Повторное напоминание {retry_id} было удалено, так как протухло! ☠️")
+
     print("🚀 Закончили восстанавливать активные повторы!")
 
 def update_med_job(bot: Bot, user_id: int, med_id: int, med_name: str, s_type: str, s_data: str, interval: int):
