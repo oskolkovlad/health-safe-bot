@@ -132,7 +132,7 @@ def add_med_job(bot: Bot, user_id: int, med_id: int, med_name: str, s_type: str,
         )
 
 async def restore_all_jobs(bot: Bot):
-    print("🚀 Начинаем восстанавливать основные задачи...")
+    print("🏃🏽‍➡️ Начинаем восстанавливать основные задачи...")
 
     # 1. Восстанавливаем основные задачи
     all_meds = db.get_all_medicines_raw()
@@ -143,8 +143,8 @@ async def restore_all_jobs(bot: Bot):
         except Exception as e:
             print(f"Ошибка восстановления основной задачи {m[0]}: {e}")
 
-    print("🚀 Закончили восстанавливать основные задачи!")
-    print("🚀 Начали восстанавливать активные повторы...")
+    print("🏆 Закончили восстанавливать основные задачи!")
+    print("🏃🏽‍➡️ Начали восстанавливать активные повторы...")
 
     # 2. Восстанавливаем активные повторы
     all_retries = db.get_all_retries()
@@ -190,7 +190,7 @@ async def restore_all_jobs(bot: Bot):
 
             print(f"☠️ Повторное напоминание {retry_id} было удалено, так как протухло! ☠️")
 
-    print("🚀 Закончили восстанавливать активные повторы!")
+    print("🏆 Закончили восстанавливать активные повторы!")
 
 def update_med_job(bot: Bot, user_id: int, med_id: int, med_name: str, s_type: str, s_data: str, interval: int):
     job_id = f"main_{user_id}_{med_id}"
