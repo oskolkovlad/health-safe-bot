@@ -6,6 +6,7 @@ from aiogram import Router, F
 from aiogram.filters import Command
 from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.fsm.context import FSMContext
+from aiogram.exceptions import TelegramBadRequest
 
 router = Router()
 
@@ -65,6 +66,19 @@ async def take_handler(cb: CallbackQuery, state: FSMContext):
             texts.TAKE_TEXT.format(med_name = cb.message.text.replace(texts.REMINDER_BASE_TEXT, '').replace('!', '')),
             reply_markup=None,
             parse_mode="HTML")
+    except TelegramBadRequest as e:
+        if "query is too old" in e.message:
+            # Если запрос устарел, просто отправляем новое сообщение
+            await cb.message.edit_text(
+                texts.TAKE_TEXT.format(med_name = cb.message.text.replace(texts.REMINDER_BASE_TEXT, '').replace('!', '')),
+                reply_markup=None,
+                parse_mode="HTML")
+            
+            # Пытаемся хотя бы убрать кнопку, если это возможно
+            try: await cb.message.edit_reply_markup(reply_markup=None)
+            except: pass
+        else:
+            print(f"Ошибка при нажатии кнопки \"Принято\": {e}")
     except Exception:
         pass
 
