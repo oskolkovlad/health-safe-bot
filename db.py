@@ -1,14 +1,16 @@
+import os
 import sqlite3
 
 from cryptography.fernet import Fernet
-from config import ENCRYPTION_KEY
+from config import ENCRYPTION_KEY, MSK
 from datetime import datetime, timedelta, timezone
 
 # Инициализируем объект для шифрования один раз
 cipher = Fernet(ENCRYPTION_KEY.encode() if isinstance(ENCRYPTION_KEY, str) else ENCRYPTION_KEY)
 
 def get_connection():
-    return sqlite3.connect("healthsafe.db")
+    db_path = "/data/healthsafe.db" if os.path.exists("/data") else "healthsafe.db"
+    return sqlite3.connect(db_path)
 
 def init_db():
     conn = get_connection()
@@ -97,7 +99,7 @@ def log_intake(med_id, user_id):
     cursor = conn.cursor()
 
     # Вычисляем московское время (UTC+3)
-    moscow_time = datetime.now(timezone(timedelta(hours=3))).strftime("%Y-%m-%d %H:%M:%S")
+    moscow_time = datetime.now(MSK).strftime("%Y-%m-%d %H:%M:%S")
 
     cursor.execute("INSERT INTO logs (med_id, user_id, taken_at) VALUES (?, ?, ?)", (med_id, user_id, moscow_time))
     conn.commit()

@@ -1,0 +1,14 @@
+meta:
+  environment: python
+  toolchain:
+    name: pip
+    version: "3.11"
+build:
+  requirementsPath: health-safe-bot/requirements.txt
+  useCache: true
+run:
+  scriptName: health-safe-bot/main.py
+  command: null
+  persistenceMount: /data
+  containerPort: "80"
+  servicePort: "80"
