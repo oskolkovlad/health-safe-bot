@@ -6,11 +6,15 @@ from aiogram import Bot
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from datetime import datetime, timedelta
 from db import cipher
+from config import MSK
 
-scheduler = AsyncIOScheduler(job_defaults={
-    'misfire_grace_time': 180, # Допускаем опоздание до 180 секунд
-    'coalesce': True           # Если было несколько пропусков, запустить один раз
-})
+scheduler = AsyncIOScheduler(
+    timezone=MSK, # Теперь планировщик живет по Москве
+    job_defaults={
+        'misfire_grace_time': 180, # Допускаем опоздание до 180 секунд
+        'coalesce': True           # Если было несколько пропусков, запустить один раз
+    }
+)
 
 # Функция, которая непосредственно отправляет уведомление
 async def send_reminder(bot: Bot, user_id: int, med_id: int, med_name: str, interval: int):
@@ -21,7 +25,7 @@ async def send_reminder(bot: Bot, user_id: int, med_id: int, med_name: str, inte
     if active_retry:
         # active_retry[0] - это msg_id, active_retry[1] - это запланированное время (run_at)
         old_msg_id = active_retry[0]
-        planned_run_at = datetime.fromisoformat(active_retry[1])
+        planned_run_at = datetime.fromisoformat(active_retry[1]).replace(tzinfo=MSK)
         
         # Убираем кнопку у предыдущего сообщения, если оно было
         try:
@@ -31,7 +35,7 @@ async def send_reminder(bot: Bot, user_id: int, med_id: int, med_name: str, inte
             pass # Если сообщение удалено пользователем или слишком старое
     else:
         # Если в базе почему-то нет записи (первый запуск), берем текущее время как точку отсчета
-        planned_run_at = datetime.now()
+        planned_run_at = datetime.now(MSK) # Используем MSK
 
     # 2. Формируем и отправляем новое уведомление
     kb = InlineKeyboardMarkup(inline_keyboard=[
@@ -52,8 +56,8 @@ async def send_reminder(bot: Bot, user_id: int, med_id: int, med_name: str, inte
         
         # Защита от "догона": если бот лежал очень долго, и next_run все еще в прошлом,
         # сдвигаем его в ближайшее будущее относительно "сейчас"
-        if next_run <= datetime.now():
-            next_run = datetime.now() + timedelta(minutes=interval)
+        if next_run <= datetime.now(MSK):
+            next_run = datetime.now(MSK) + timedelta(minutes=interval)
 
         # 4. Обновляем информацию в БД и планируем новую задачу
         db.add_active_retry(user_id, med_id, next_run, msg.message_id)
@@ -150,14 +154,14 @@ async def restore_all_jobs(bot: Bot):
     all_retries = db.get_all_retries()
     for r in all_retries:
         uid, mid, run_at_str, last_msg_id = r
-        run_at = datetime.fromisoformat(run_at_str)
+        run_at = datetime.fromisoformat(run_at_str).replace(tzinfo=MSK)
 
         m = db.get_full_medicine_by_id(mid) # Получаем инфо о лекарстве
         if not m: continue
         
         # Если время повтора уже прошло, пока бот был выключен,
         # APScheduler может выполнить его сразу (если не прошло слишком много времени)
-        if run_at > (datetime.now() - timedelta(hours=5)):
+        if run_at > (datetime.now(MSK) - timedelta(hours=5)):
             scheduler.add_job(
                 send_reminder,
                 "date",
