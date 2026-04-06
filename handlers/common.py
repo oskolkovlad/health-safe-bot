@@ -88,8 +88,6 @@ async def take_handler(cb: CallbackQuery, state: FSMContext):
     except Exception:
         pass
 
-    await cb.answer()
-
 def back_to_main_kb():
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=texts.MENU_BUTTON_TEXT, callback_data="main_menu")]

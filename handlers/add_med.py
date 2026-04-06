@@ -110,7 +110,6 @@ async def add_med_finish(message: Message, state: FSMContext, bot: Bot):
     
     await state.clear()
     await message.answer(texts.ADD_MED_SUCCESS_TEXT.format(med_name=data['name']), reply_markup=back_to_main_kb_answer(), parse_mode="HTML")
-    await to_main_answer(message, state)
 
 # --- Обработчики кнопок "Назад" ---
 
