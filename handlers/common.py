@@ -65,14 +65,14 @@ async def take_handler(cb: CallbackQuery, state: FSMContext):
     try:
         await cb.message.edit_text(
             texts.TAKE_TEXT.format(med_name = cb.message.text.replace(texts.REMINDER_BASE_TEXT, '').replace('!', '')),
-            reply_markup=None,
+            reply_markup=back_to_main_kb(),
             parse_mode="HTML")
     except TelegramBadRequest as e:
         if "query is too old" in e.message:
             # Если запрос устарел, просто отправляем новое сообщение
             await cb.message.edit_text(
                 texts.TAKE_TEXT.format(med_name = cb.message.text.replace(texts.REMINDER_BASE_TEXT, '').replace('!', '')),
-                reply_markup=None,
+                reply_markup=back_to_main_kb(),
                 parse_mode="HTML")
             
             # Пытаемся хотя бы убрать кнопку, если это возможно
@@ -82,9 +82,7 @@ async def take_handler(cb: CallbackQuery, state: FSMContext):
             print(f"Ошибка при нажатии кнопки \"Принято\": {e}")
     except Exception:
         pass
-
-    # 5. Отправляем основное меню через твой метод
-    await to_main_answer(cb.message, state)
+    
     await cb.answer()
 
 def back_to_main_kb():
