@@ -22,9 +22,9 @@ async def cmd_start(message: Message, state: FSMContext):
     await state.clear()
     await message.answer(texts.START_TEXT, reply_markup=main_menu_kb(), parse_mode="HTML")
 
-@router.message(Command("menu"))
 @router.callback_query(F.data == "main_menu")
 @router.callback_query(F.data == "cancel")
+@router.message(Command("menu"))
 async def to_main_edit(cb: CallbackQuery, state: FSMContext):
     await state.clear()
     await cb.message.edit_text(texts.MAIN_MENU_TEXT, reply_markup=main_menu_kb(), parse_mode="HTML")
@@ -82,7 +82,7 @@ async def take_handler(cb: CallbackQuery, state: FSMContext):
             print(f"Ошибка при нажатии кнопки \"Принято\": {e}")
     except Exception:
         pass
-    
+
     await cb.answer()
 
 def back_to_main_kb():
