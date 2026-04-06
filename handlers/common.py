@@ -22,6 +22,7 @@ async def cmd_start(message: Message, state: FSMContext):
     await state.clear()
     await message.answer(texts.START_TEXT, reply_markup=main_menu_kb(), parse_mode="HTML")
 
+@router.message(Command("menu"))
 @router.callback_query(F.data == "main_menu")
 @router.callback_query(F.data == "cancel")
 async def to_main_edit(cb: CallbackQuery, state: FSMContext):
