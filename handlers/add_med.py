@@ -6,7 +6,7 @@ from aiogram import Router, F, Bot
 from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-from handlers.common import to_main_answer
+from handlers.common import to_main_answer, back_to_main_kb_answer
 
 router = Router()
 
@@ -109,7 +109,7 @@ async def add_med_finish(message: Message, state: FSMContext, bot: Bot):
     sc.add_med_job(bot, message.from_user.id, new_med[0], new_med[1],  data['schedule_type'], data['schedule_data'], interval)
     
     await state.clear()
-    await message.answer(texts.ADD_MED_SUCCESS_TEXT.format(med_name=data['name']), parse_mode="HTML")
+    await message.answer(texts.ADD_MED_SUCCESS_TEXT.format(med_name=data['name']), reply_markup=back_to_main_kb_answer(), parse_mode="HTML")
     await to_main_answer(message, state)
 
 # --- Обработчики кнопок "Назад" ---

@@ -29,6 +29,7 @@ async def to_main_edit(cb: CallbackQuery, state: FSMContext):
     await state.clear()
     await cb.message.edit_text(texts.MAIN_MENU_TEXT, reply_markup=main_menu_kb(), parse_mode="HTML")
 
+@router.callback_query(F.data == "main_menu_answer")
 async def to_main_answer(message: Message, state: FSMContext):
     await state.clear()
     await message.answer(texts.MAIN_MENU_TEXT, reply_markup=main_menu_kb(), parse_mode="HTML")
@@ -65,14 +66,14 @@ async def take_handler(cb: CallbackQuery, state: FSMContext):
     try:
         await cb.message.edit_text(
             texts.TAKE_TEXT.format(med_name = cb.message.text.replace(texts.REMINDER_BASE_TEXT, '').replace('!', '')),
-            reply_markup=back_to_main_kb(),
+            reply_markup=back_to_main_kb_answer(),
             parse_mode="HTML")
     except TelegramBadRequest as e:
         if "query is too old" in e.message:
             # Если запрос устарел, просто отправляем новое сообщение
             await cb.message.edit_text(
                 texts.TAKE_TEXT.format(med_name = cb.message.text.replace(texts.REMINDER_BASE_TEXT, '').replace('!', '')),
-                reply_markup=back_to_main_kb(),
+                reply_markup=back_to_main_kb_answer(),
                 parse_mode="HTML")
             
             # Пытаемся хотя бы убрать кнопку, если это возможно
@@ -88,4 +89,9 @@ async def take_handler(cb: CallbackQuery, state: FSMContext):
 def back_to_main_kb():
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=texts.MENU_BUTTON_TEXT, callback_data="main_menu")]
+    ])
+
+def back_to_main_kb_answer():
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text=texts.MENU_BUTTON_TEXT, callback_data="main_menu_answer")]
     ])
