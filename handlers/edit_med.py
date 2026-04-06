@@ -58,10 +58,19 @@ async def my_meds(cb: CallbackQuery):
 
 @router.callback_query(F.data.startswith("del_"))
 async def del_med(cb: CallbackQuery):
-    db.delete_medicine(int(cb.data.split("_")[1]))
+    mid = int(cb.data.split("_")[1])
+    uid = cb.from_user.id
+    
+    db.delete_medicine(mid)
+    db.remove_active_retry(uid, mid)
+            
+    # Удаляем задачу повторного напоминания, если она есть
+    retry_id = f"retry_{uid}_{mid}"
+    if sc.scheduler.get_job(retry_id):
+        sc.scheduler.remove_job(retry_id)
+
     await cb.answer(texts.EDIT_MED_DELETED_TEXT)
     await my_meds(cb)
-
 
 @router.callback_query(F.data.startswith("edit_"))
 async def edit_call(cb: CallbackQuery, state: FSMContext):
