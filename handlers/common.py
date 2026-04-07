@@ -33,6 +33,17 @@ async def to_main_edit(cb: CallbackQuery, state: FSMContext):
     await cb.message.edit_text(texts.MAIN_MENU_TEXT, reply_markup=main_menu_kb(), parse_mode="HTML")
 
 @router.callback_query(F.data == "main_menu_answer")
+async def to_main_menu_answer(cb: CallbackQuery, state: FSMContext):
+    # Убираем кнопку у сообщения о принятии, чтобы нельзя было нажать дважды
+    try:
+        await cb.message.edit_reply_markup(reply_markup=None)
+    except:
+        pass
+        
+    # Отправляем меню ОТДЕЛЬНЫМ сообщением
+    await to_main_answer(cb.message, state)
+    await cb.answer()
+
 async def to_main_answer(message: Message, state: FSMContext):
     await state.clear()
     await message.answer(texts.MAIN_MENU_TEXT, reply_markup=main_menu_kb(), parse_mode="HTML")
@@ -71,12 +82,13 @@ async def take_handler(cb: CallbackQuery, state: FSMContext):
             texts.TAKE_TEXT.format(med_name = cb.message.text.replace(texts.REMINDER_BASE_TEXT, '').replace('!', '')),
             reply_markup=back_to_main_kb_answer(),
             parse_mode="HTML")
+        await cb.answer() # Убираем "часики"
     except TelegramBadRequest as e:
         if "query is too old" in e.message:
             # Если запрос устарел, просто отправляем новое сообщение
             await cb.message.edit_text(
                 texts.TAKE_TEXT.format(med_name = cb.message.text.replace(texts.REMINDER_BASE_TEXT, '').replace('!', '')),
-                reply_markup=back_to_main_kb_answer(),
+                reply_markup=None,
                 parse_mode="HTML")
             
             # Пытаемся хотя бы убрать кнопку, если это возможно
