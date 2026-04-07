@@ -57,26 +57,42 @@ async def my_meds(cb: CallbackQuery):
     await cb.message.edit_text(texts.EDIT_MEDS_LIST_TEXT, reply_markup=InlineKeyboardMarkup(inline_keyboard=btns), parse_mode="HTML")
 
 @router.callback_query(F.data.startswith("del_"))
-async def del_med(cb: CallbackQuery):
-    mid = int(cb.data.split("_")[1])
+async def del_med(cb: CallbackQuery, bot: Bot):
+    # 1. Парсим ID
+    mid = int(cb.data.split("_")[1]) 
     uid = cb.from_user.id
     
-    # 1. Удаляем из БД (само лекарство и активные повторы)
+    # 2. ПОЛУЧАЕМ ID ПОСЛЕДНЕГО СООБЩЕНИЯ перед удалением из БД
+    active_retry = db.get_active_retry(uid, mid)
+    
+    if active_retry:
+        last_msg_id = active_retry[0]
+        # Пытаемся убрать кнопку "Принято" у последнего уведомления
+        try:
+            await bot.edit_message_reply_markup(
+                chat_id=uid, 
+                message_id=last_msg_id, 
+                reply_markup=None
+            )
+        except Exception as e:
+            print(f"Не удалось скрыть кнопку (возможно, сообщение удалено): {e}")
+
+    # 3. УДАЛЯЕМ ИЗ БД
     db.delete_medicine(mid)
     db.remove_active_retry(uid, mid)
             
-    # 2. Удаляем ОСНОВНУЮ задачу (которая пушит по расписанию)
+    # 4. ЧИСТИМ ПЛАНИРОВЩИК
+    # Удаляем основное расписание
     main_job_id = f"main_{uid}_{mid}"
     if sc.scheduler.get_job(main_job_id):
         sc.scheduler.remove_job(main_job_id)
-        print(f"✅ Основная задача \"{main_job_id}\" удалена")
 
-    # 3. Удаляем задачу ПОВТОРА (если она висела прямо сейчас)
+    # Удаляем задачу повтора
     retry_id = f"retry_{uid}_{mid}"
     if sc.scheduler.get_job(retry_id):
         sc.scheduler.remove_job(retry_id)
-        print(f"✅ Задача повтора \"{retry_id}\" удалена")
 
+    # 5. ИНФОРМИРУЕМ
     await cb.answer(texts.EDIT_MED_DELETED_TEXT)
     await my_meds(cb)
 
