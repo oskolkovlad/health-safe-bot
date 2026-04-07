@@ -187,7 +187,7 @@ async def restore_all_jobs(bot: Bot):
 
             await bot.send_message(
                 uid, 
-                texts.REMINDER_REMOVED_TEXT.format(med_name=m['name'], run_at=run_at_str),
+                texts.REMINDER_REMOVED_TEXT.format(med_name=m['name'], run_at=run_at),
                 reply_markup=None,
                 parse_mode="HTML"
             )
