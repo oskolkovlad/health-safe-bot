@@ -24,7 +24,7 @@ async def cmd_start(message: Message, state: FSMContext):
 
 @router.message(Command("menu"))
 async def cmd_menu(message: Message, state: FSMContext):
-    to_main_answer(message, state)
+    await to_main_answer(message, state)
 
 @router.callback_query(F.data == "main_menu")
 @router.callback_query(F.data == "cancel")
