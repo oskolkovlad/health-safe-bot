@@ -61,13 +61,21 @@ async def del_med(cb: CallbackQuery):
     mid = int(cb.data.split("_")[1])
     uid = cb.from_user.id
     
+    # 1. Удаляем из БД (само лекарство и активные повторы)
     db.delete_medicine(mid)
     db.remove_active_retry(uid, mid)
             
-    # Удаляем задачу повторного напоминания, если она есть
+    # 2. Удаляем ОСНОВНУЮ задачу (которая пушит по расписанию)
+    main_job_id = f"main_{uid}_{mid}"
+    if sc.scheduler.get_job(main_job_id):
+        sc.scheduler.remove_job(main_job_id)
+        print(f"✅ Основная задача \"{main_job_id}\" удалена")
+
+    # 3. Удаляем задачу ПОВТОРА (если она висела прямо сейчас)
     retry_id = f"retry_{uid}_{mid}"
     if sc.scheduler.get_job(retry_id):
         sc.scheduler.remove_job(retry_id)
+        print(f"✅ Задача повтора \"{retry_id}\" удалена")
 
     await cb.answer(texts.EDIT_MED_DELETED_TEXT)
     await my_meds(cb)
