@@ -121,7 +121,7 @@ def get_logs_for_medicine(med_id):
     cursor.execute("SELECT taken_at, status FROM logs WHERE med_id = ? ORDER BY taken_at DESC LIMIT 20", (med_id,))
     rows = cursor.fetchall()
     conn.close()
-    return [r[0] for r in rows]
+    return rows
 
 
 def get_all_medicines_raw():
