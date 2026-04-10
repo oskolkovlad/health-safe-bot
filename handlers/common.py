@@ -114,10 +114,11 @@ async def process_skip_med(cb: CallbackQuery):
     mid = int(cb.data.split("_")[1])
     uid = cb.from_user.id
 
-    db.log_intake(mid, uid, status="skipped")
-
     # Удаляем активные повторы, так как пользователь отреагировал на уведомление
     db.remove_active_retry(uid, mid)
+    
+    # Логируем прием
+    db.log_intake(mid, uid, status="skipped")
     
     # Удаляем задачу повторного напоминания из планировщика
     retry_id = f"retry_{uid}_{mid}"
