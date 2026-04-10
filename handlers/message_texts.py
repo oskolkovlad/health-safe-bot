@@ -44,6 +44,7 @@ MAIN_MENU_TEXT = (
 )
 
 TAKE_TEXT = "✅ Кайф, лекарство <b>{med_name}</b> принято!\n\nБудь здоров(а)! 💪🏼"
+TAKE_SKIP_TEXT = "💊 Приём лекарства <b>«{med_name}»</b> пропущен."
 TAKE_NOT_ACTUAL_TEXT = "Этот прием уже зафиксирован или не актуален."
 
 ADD_MED_BUTTON_TEXT = "➕ Добавить лекарство"
@@ -110,6 +111,10 @@ MED_LOGS_TEXT = "📊 Журнал приема: <b>«{med_name}»</b>\n\n"
 NO_LOG_RECORDS_TEXT= "Записей пока нет."
 DATA_REFRESHED_TEXT = "Данные обновлены!"
 
+# Статусы для журнала
+LOG_STATUS_TAKEN = "✅"
+LOG_STATUS_SKIPPED = "❌"
+
 REFRESH_BUTTON_TEXT = "🔄 Обновить"
 
 # scheduler.py
@@ -124,3 +129,4 @@ REMINDER_REMOVED_TEXT = (
 )
 
 REMINDER_BUTTON_TEXT = "✅ Принято"
+REMINDER_SKIP_BUTTON_TEXT = "❌ Пропустить"

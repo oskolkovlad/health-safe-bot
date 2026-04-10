@@ -108,3 +108,32 @@ def back_to_main_kb_answer():
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=texts.MENU_BUTTON_TEXT, callback_data="main_menu_answer")]
     ])
+
+@router.callback_query(F.data.startswith("skip_"))
+async def process_skip_med(cb: CallbackQuery):
+    mid = int(cb.data.split("_")[1])
+    uid = cb.from_user.id
+
+    db.log_intake(mid, uid, status="skipped")
+
+    # Удаляем активные повторы, так как пользователь отреагировал на уведомление
+    db.remove_active_retry(uid, mid)
+    
+    # Удаляем задачу повторного напоминания из планировщика
+    retry_id = f"retry_{uid}_{mid}"
+    if sc.scheduler.get_job(retry_id):
+        sc.scheduler.remove_job(retry_id)
+    
+    # Извлекаем название лекарства из текста сообщения для вывода подтверждения
+    # (логика очистки текста аналогична той, что в process_taken_med)
+    med_name = cb.message.text.replace(texts.REMINDER_BASE_TEXT, '').replace('!', '')
+
+    try:
+        await cb.message.edit_text(
+            texts.TAKE_SKIP_TEXT.format(med_name=med_name),
+            reply_markup=back_to_main_kb_answer(),
+            parse_mode="HTML"
+        )
+        await cb.answer()
+    except Exception as e:
+        print(f"Ошибка при нажатии кнопки 'Пропустить': {e}")

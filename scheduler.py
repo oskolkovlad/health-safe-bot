@@ -39,7 +39,10 @@ async def send_reminder(bot: Bot, user_id: int, med_id: int, med_name: str, inte
 
     # 2. Формируем и отправляем новое уведомление
     kb = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=texts.REMINDER_BUTTON_TEXT, callback_data=f"take_{med_id}")]
+        [
+            InlineKeyboardButton(text=texts.REMINDER_BUTTON_TEXT, callback_data=f"take_{med_id}"),
+            InlineKeyboardButton(text=texts.REMINDER_SKIP_BUTTON_TEXT, callback_data=f"skip_{med_id}")
+        ]
     ])
     
     try:

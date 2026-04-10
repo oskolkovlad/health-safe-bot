@@ -36,15 +36,18 @@ async def view_log(callback: CallbackQuery):
     if not logs:
         text += texts.NO_LOG_RECORDS_TEXT
     else:
-        for log_raw in logs[:10]:
+        for log_date, status in logs:
             try:
                 # Преобразуем из YYYY-MM-DD HH:MM:SS в DD.MM.YYYY HH:MM:SS
                 dt_obj = datetime.strptime(log_raw, "%Y-%m-%d %H:%M:%S")
                 formatted_date = dt_obj.strftime("%d.%m.%Y %H:%M:%S")
-                text += f"✅ {formatted_date}\n"
-            except ValueError:
-                text += f"✅ {log_raw}\n"
-            
+                
+                # Выбираем иконку в зависимости от статуса
+                icon = texts.LOG_STATUS_TAKEN if status == "taken" else texts.LOG_STATUS_SKIPPED
+                text += f"{icon} {formatted_date}\n"
+            except Exception:
+                text += f"❓ {log_date}\n"
+    
     kb = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=texts.REFRESH_BUTTON_TEXT, callback_data=f"viewlog_{mid}")],
         [InlineKeyboardButton(text=texts.BACK_BUTTON_TEXT, callback_data="log_stats")]

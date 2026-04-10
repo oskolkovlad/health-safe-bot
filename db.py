@@ -15,6 +15,7 @@ def get_connection():
 def init_db():
     conn = get_connection()
     cursor = conn.cursor()
+
     # Таблица лекарств
     cursor.execute('''CREATE TABLE IF NOT EXISTS medicines (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -25,6 +26,7 @@ def init_db():
         schedule_data TEXT,
         interval_minutes INTEGER
     )''')
+
     # Таблица логов приема
     cursor.execute('''CREATE TABLE IF NOT EXISTS logs (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -32,6 +34,7 @@ def init_db():
         user_id INTEGER,
         taken_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )''')
+
     # Таблица для хранения активных повторов
     cursor.execute('''CREATE TABLE IF NOT EXISTS active_retries (
         user_id INTEGER,
@@ -40,6 +43,13 @@ def init_db():
         last_msg_id INTEGER,
         PRIMARY KEY (user_id, med_id)
     )''')
+
+    # Добавляем колонку status, если её еще нет (для миграции)
+    try:
+        cursor.execute("ALTER TABLE logs ADD COLUMN status TEXT DEFAULT 'taken'")
+    except sqlite3.OperationalError:
+        pass # Колонка уже существует
+
     conn.commit()
     conn.close()
 
@@ -94,21 +104,21 @@ def delete_medicine(med_id):
     conn.commit()
     conn.close()
 
-def log_intake(med_id, user_id):
+def log_intake(med_id, user_id, status="taken"):
     conn = get_connection()
     cursor = conn.cursor()
 
     # Вычисляем московское время (UTC+3)
     moscow_time = datetime.now(MSK).strftime("%Y-%m-%d %H:%M:%S")
 
-    cursor.execute("INSERT INTO logs (med_id, user_id, taken_at) VALUES (?, ?, ?)", (med_id, user_id, moscow_time))
+    cursor.execute("INSERT INTO logs (med_id, user_id, taken_at, status) VALUES (?, ?, ?, ?)", (med_id, user_id, moscow_time))
     conn.commit()
     conn.close()
 
 def get_logs_for_medicine(med_id):
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT taken_at FROM logs WHERE med_id = ? ORDER BY taken_at DESC", (med_id,))
+    cursor.execute("SELECT taken_at, status FROM logs WHERE med_id = ? ORDER BY taken_at DESC LIMIT 20", (med_id,))
     rows = cursor.fetchall()
     conn.close()
     return [r[0] for r in rows]
