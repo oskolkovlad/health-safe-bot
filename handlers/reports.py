@@ -39,7 +39,7 @@ async def view_log(callback: CallbackQuery):
         for log_date, status in logs:
             try:
                 # Преобразуем из YYYY-MM-DD HH:MM:SS в DD.MM.YYYY HH:MM:SS
-                dt_obj = datetime.strptime(log_raw, "%Y-%m-%d %H:%M:%S")
+                dt_obj = datetime.strptime(log_date, "%Y-%m-%d %H:%M:%S")
                 formatted_date = dt_obj.strftime("%d.%m.%Y %H:%M:%S")
                 
                 # Выбираем иконку в зависимости от статуса

@@ -44,7 +44,7 @@ MAIN_MENU_TEXT = (
 )
 
 TAKE_TEXT = "✅ Кайф, лекарство <b>{med_name}</b> принято!\n\nБудь здоров(а)! 💪🏼"
-TAKE_SKIP_TEXT = "💊 Приём лекарства <b>«{med_name}»</b> пропущен."
+TAKE_SKIP_TEXT = "💊 Приём лекарства <b>{med_name}</b> пропущен."
 TAKE_NOT_ACTUAL_TEXT = "Этот прием уже зафиксирован или не актуален."
 
 ADD_MED_BUTTON_TEXT = "➕ Добавить лекарство"
