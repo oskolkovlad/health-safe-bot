@@ -111,7 +111,7 @@ def log_intake(med_id, user_id, status="taken"):
     # Вычисляем московское время (UTC+3)
     moscow_time = datetime.now(MSK).strftime("%Y-%m-%d %H:%M:%S")
 
-    cursor.execute("INSERT INTO logs (med_id, user_id, taken_at, status) VALUES (?, ?, ?, ?)", (med_id, user_id, moscow_time))
+    cursor.execute("INSERT INTO logs (med_id, user_id, taken_at, status) VALUES (?, ?, ?, ?)", (med_id, user_id, moscow_time, status))
     conn.commit()
     conn.close()
 
